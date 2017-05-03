@@ -48,7 +48,7 @@
         android:id="@+id/sortByTitleButton"
         android:layout_width="333dp"
         android:layout_height="53dp"
-        android:text="SORTOWANIE PO TYTULE"
+        android:text="SORTOWANIE PO:"
         tools:layout_editor_absoluteY="442dp"
         tools:layout_editor_absoluteX="26dp"
         android:layout_alignParentBottom="true"

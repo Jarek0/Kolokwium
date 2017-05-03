@@ -16,6 +16,8 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 import pollub.edu.pl.kolokwium.database.DatabaseContentProvider;
 import pollub.edu.pl.kolokwium.database.DatabaseHelper;
 
@@ -27,6 +29,15 @@ public class ListOfGames extends AppCompatActivity implements LoaderManager.Load
 
     private CustomAdapter listAdapter;
     private ListView listView;
+
+    int sortPointer = 0;
+    ArrayList<String> kindSort = new ArrayList<String>(){{
+        add(DatabaseHelper.ID);
+        add(DatabaseHelper.TITLE_COLUMN_NAME);
+        add(DatabaseHelper.KIND_COLUMN_NAME);
+        add(DatabaseHelper.YEAR_COLUMN_NAME);
+        add(DatabaseHelper.AGE_COLUMN_NAME);
+    }};
 
     boolean accessToAdultGames = false;
 
@@ -71,11 +82,18 @@ public class ListOfGames extends AppCompatActivity implements LoaderManager.Load
         });
 
         sortByTitleButton= (Button) findViewById(R.id.sortByTitleButton);
-
+        sortByTitleButton.setText("SORTOWANIE PO: "+kindSort.get(sortPointer));
         sortByTitleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runLoaderWithSort();
+
+                if(sortPointer+1>=kindSort.size())
+                    sortPointer=0;
+                else
+                    sortPointer+=1;
+
+                sortByTitleButton.setText("SORTOWANIE PO: "+kindSort.get(sortPointer));
+                runLoader();
             }
         });
     }
@@ -96,19 +114,11 @@ public class ListOfGames extends AppCompatActivity implements LoaderManager.Load
     private void runLoader(){
         getLoaderManager().initLoader(0,null,this);
         String[] columnNames={DatabaseHelper.ID,DatabaseHelper.TITLE_COLUMN_NAME,DatabaseHelper.YEAR_COLUMN_NAME};
-        Cursor cursor=getContentResolver().query(DatabaseContentProvider.CONTENT_URI,columnNames,null,null,null);
+        Cursor cursor=getContentResolver().query(DatabaseContentProvider.CONTENT_URI,columnNames,null,null,kindSort.get(sortPointer));
         listAdapter=new CustomAdapter(this,cursor);
         listView.setAdapter(listAdapter);
     }
 
-    private void runLoaderWithSort(){
-        getLoaderManager().initLoader(0,null,this);
-        String sort = DatabaseHelper.TITLE_COLUMN_NAME;
-        String[] columnNames={DatabaseHelper.ID,DatabaseHelper.TITLE_COLUMN_NAME,DatabaseHelper.YEAR_COLUMN_NAME};
-        Cursor cursor=getContentResolver().query(DatabaseContentProvider.CONTENT_URI,columnNames,null,null,sort);
-        listAdapter=new CustomAdapter(this,cursor);
-        listView.setAdapter(listAdapter);
-    }
 
     @Override
     protected void onResume() {
@@ -124,11 +134,11 @@ public class ListOfGames extends AppCompatActivity implements LoaderManager.Load
         if(!accessToAdultGames) {
             String selection = DatabaseHelper.AGE_COLUMN_NAME + "<?";
             String[] selectionArgs = {"18"};
-            cursorLoader = new CursorLoader(this, DatabaseContentProvider.CONTENT_URI, projection, selection, selectionArgs, null);
+            cursorLoader = new CursorLoader(this, DatabaseContentProvider.CONTENT_URI, projection, selection, selectionArgs, kindSort.get(sortPointer));
         }
         else
         {
-            cursorLoader = new CursorLoader(this, DatabaseContentProvider.CONTENT_URI, projection, null, null, null);
+            cursorLoader = new CursorLoader(this, DatabaseContentProvider.CONTENT_URI, projection, null, null, kindSort.get(sortPointer));
         }
             return cursorLoader;
     }
